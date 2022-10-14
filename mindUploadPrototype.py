@@ -26,7 +26,7 @@ graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
-def train():#fix training
+def train():#Adversarial training between easy and difficult n-grams... Then simulation...
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
         text = f.readlines()
     varX = text[0].count(",")
