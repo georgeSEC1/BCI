@@ -88,8 +88,8 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
     ser = serial.Serial(com, baud, timeout = 0.1) 
     record = ""
     i = 0
-    testX = open("uploadedSignalDataA.csv", "a", encoding="utf8")
-    testY = open("uploadedGraphemeDataA.csv", "a", encoding="utf8")
+    testX = open("uploadedSignalData.csv", "a", encoding="utf8")
+    testY = open("uploadedGraphemeData.csv", "a", encoding="utf8")
     while ser.isOpen():
         var = ser.readline().decode('utf-8')
         if len(var) > 0:
