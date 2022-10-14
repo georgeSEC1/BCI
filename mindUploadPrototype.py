@@ -4,7 +4,8 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import tensorflow as tf
 import numpy as np
-NNvar = 50
+from collections import deque
+NNvar = 30
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
@@ -23,32 +24,6 @@ def train():#fix training
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X, y, epochs=150, batch_size=10, verbose=1)
     model.save('my_model')
-def predict(grapheme):
-    with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
-        text = f.readlines()
-    proc = 0
-    try:
-        proc = text.index(grapheme)
-    except:
-        proc = 0
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-        text = f.readlines()
-    analysis = open("analysis.csv", "a", encoding="utf8")
-    analysis.write(text[proc] + "\n" + text[proc] + "\n")
-    analysis.flush()
-    analysis.close()
-    dataset = np.loadtxt('analysis.csv', delimiter=',')
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-        text = f.readlines()
-    varX = text[0].count(",")-1
-    X = dataset[:,0:varX]
-    y = dataset[:,varX]
-    print(X)
-    print(y)
-    model = keras.models.load_model('my_model')
-    predictions = (model.predict(X) > 0.5).astype(int)
-    print('%s => %d' % (X[0].tolist(), predictions[0]))
-    return predictions[0][0]
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
     out = []
@@ -73,8 +48,13 @@ def record():
                 graphemeBlock = len(word)
                 data = chunkIt(record,graphemeBlock)
                 count = 0
+                procX = 0
                 for seg in data:
                     seg = list(filter(None, seg.split(",")))
+                    if procX == 0:
+                        procX = len(seg)-1
+                        print(procX)
+                    seg = seg[:procX]
                     print(seg, "=", count)
                     testA.write(','.join(seg) + "\n")#todo,automatically recognise difficulty/effort per syllable
                     testA.flush()
@@ -86,7 +66,7 @@ def record():
             i+=1
     testA.close()
     testB.close()
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:#post processing
         text = f.read().replace(",\n","\n").replace("\n,","\n")
     proc = open("uploadedSignalData.csv", "w", encoding="utf8")
     proc.write(text)
@@ -94,17 +74,33 @@ def record():
     proc.close()
     return record
 def gen(text):
-    #deconstruct text
     db = []
+    model = keras.models.load_model('my_model')
+    with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
+        text = f.readlines()
     for grapheme in text:
-        if predict(grapheme) == 1:#detect effort/difficulty
-            db.append(True)
-        if predict(grapheme) == 0:#detect effort/difficulty
-            db.append(False)
-    print(db)
+        proc = 0
+        try:
+            proc = text.index(grapheme)
+        except:
+            proc = 0
+        print(proc, grapheme.strip())
+        with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+            textB = f.readlines()
+        analysis = open("analysis.csv", "a", encoding="utf8")
+        analysis.write(textB[proc])
+        analysis.flush()
+        analysis.close()
+        dataset = np.loadtxt('analysis.csv', delimiter=',')
+        with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+            text = f.readlines()
+        varX = text[0].count(",")-1
+        X = dataset[:,0:varX]
+        predictions = (model.predict(X) > 0.5).astype(int)
+        print('%s => %d' % (X[0].tolist(), predictions[0]))
     return db
 while(True):
-    option = input("record, train or generate mental image:[r/t/g]")
+    option = input("record, train or generate mental structure:[r/t/g]")
     if option == "r":
         record()
     if option == "t":
