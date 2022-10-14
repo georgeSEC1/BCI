@@ -97,7 +97,7 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
             print(var.strip())
             if i == NNvar:
                 word = ngram
-                graphemeBlock = len(word)
+                graphemeBlock = len(word)-1
                 data = chunkIt(record,graphemeBlock)
                 count = 0
                 procX = 0
