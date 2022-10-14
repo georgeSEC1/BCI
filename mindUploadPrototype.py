@@ -1,3 +1,18 @@
+#Mind uploading technology 
+#Copyright (C) 2022 George Wagenkencht
+#
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or
+#(at your option) any later version.
+#
+#This program is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+#
+#You should have received a copy of the GNU General Public License
+#along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import serial
 import keras
 from tensorflow.keras.models import Sequential
@@ -5,7 +20,8 @@ from tensorflow.keras.layers import Dense
 import tensorflow as tf
 import numpy as np
 from collections import deque
-NNvar = 30
+import time
+NNvar = 25
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
@@ -13,7 +29,7 @@ option = ""
 def train():#fix training
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
         text = f.readlines()
-    varX = text[0].count(",")-1
+    varX = text[0].count(",")
     dataset = np.loadtxt("uploadedSignalData.csv", delimiter=',',usecols = range(varX+1))
     X = dataset[:,0:varX]
     y = dataset[:,varX]
@@ -56,10 +72,10 @@ def record():
                         print(procX)
                     seg = seg[:procX]
                     print(seg, "=", count)
-                    testA.write(','.join(seg) + "\n")#todo,automatically recognise difficulty/effort per syllable
-                    testA.flush()
                     testB.write(input("Label data for segment:") +"\n")#todo,automatically recognise difficulty/effort per syllable
                     testB.flush()
+                    testA.write(','.join(seg) + "," + input("Stress detected? [1 or 0](WIP):")+ "\n")#todo,automatically recognise difficulty/effort per syllable
+                    testA.flush()
                     count+=1
                 i = 0
                 break
@@ -78,32 +94,37 @@ def gen(text):
     model = keras.models.load_model('my_model')
     with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
         text = f.readlines()
+    analysis = open("analysis.csv", "a", encoding="utf8")
     for grapheme in text:
         proc = 0
         try:
             proc = text.index(grapheme)
         except:
             proc = 0
-        print(proc, grapheme.strip())
         with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
             textB = f.readlines()
-        analysis = open("analysis.csv", "a", encoding="utf8")
         analysis.write(textB[proc])
         analysis.flush()
-        analysis.close()
-        dataset = np.loadtxt('analysis.csv', delimiter=',')
-        with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-            text = f.readlines()
-        varX = text[0].count(",")-1
-        X = dataset[:,0:varX]
-        predictions = (model.predict(X) > 0.5).astype(int)
-        print('%s => %d' % (X[0].tolist(), predictions[0]))
+    analysis.close()
+    dataset = np.loadtxt('analysis.csv', delimiter=',')
+    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+        text = f.readlines()
+    varX = text[0].count(",")
+    X = dataset[:,0:varX]
+    predictions = (model.predict(X) > 0.5).astype(int)
+    for i in range(len(X)):
+        if predictions[i] == 0:
+            db.append(False)
+        if predictions[i] == 1:
+            db.append(True)
+        print('%s => %d' % (X[i].tolist(), predictions[i]))
     return db
 while(True):
-    option = input("record, train or generate mental structure:[r/t/g]")
+    option = input("record, train or generate mental structure? [r/t/g]:")
     if option == "r":
         record()
     if option == "t":
         train()
     if option == "g":
-        gen(input("Enter text:"))
+        db = gen(input("Enter text:"))
+        print(db)
