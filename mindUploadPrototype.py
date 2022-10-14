@@ -89,7 +89,7 @@ def record():
     proc.flush()
     proc.close()
     return record
-def gen(text):
+def gen(text):#refactor into construction using gen() input rather than record() input
     db = []
     model = keras.models.load_model('my_model')
     with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
