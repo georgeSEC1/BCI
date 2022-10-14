@@ -21,12 +21,48 @@ import tensorflow as tf
 import numpy as np
 from collections import deque
 import time
-NNvar = 25
+import random
+NNvar = 55#work on continually adequate samples throughout short ngrams and long n-grams alike
+sampleSize = 10
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
-def train():#Adversarial training between easy and difficult n-grams... Then simulation...
+targetNgramSize = 2
+def returnWords(data,length):
+    ngram = ""
+    pos = random.randint(1,len(data))
+    n = 0
+    while(n < length and pos+length < len(data)-1):
+        if pos+n < len(data)-2 and pos+n > 0:
+            ngram += data[pos+n] + " "
+        n+=1
+    print(ngram)
+    print(3)
+    time.sleep(1)
+    print(2)
+    time.sleep(1)
+    print(1)
+    time.sleep(1)
+    return ngram
+def returnRWords(data,length):
+    ngram = ""
+    pos = random.randint(1,len(data))
+    n = 0
+    while(n < length and pos+length < len(data)-1):
+        pos = random.randint(1,len(data))
+        if pos+n < len(data)-2 and pos+n > 0:
+            ngram += data[pos+n] + " "
+        n+=1
+    print(ngram)
+    print(3)
+    time.sleep(1)
+    print(2)
+    time.sleep(1)
+    print(1)
+    time.sleep(1)
+    return ngram
+def train():
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
         text = f.readlines()
     varX = text[0].count(",")
@@ -48,19 +84,19 @@ def chunkIt(seq, num):
         out.append(seq[int(last):int(last + avg)])
         last += avg
     return out
-def record():
+def record(ngram,stress):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
     ser = serial.Serial(com, baud, timeout = 0.1) 
     record = ""
     i = 0
-    testA = open("uploadedSignalData.csv", "a", encoding="utf8")
-    testB = open("uploadedGraphemeData.csv", "a", encoding="utf8")
+    testX = open("uploadedSignalDataA.csv", "a", encoding="utf8")
+    testY = open("uploadedGraphemeDataA.csv", "a", encoding="utf8")
     while ser.isOpen():
         var = ser.readline().decode('utf-8')
         if len(var) > 0:
             record += var.strip() + ","
             print(var.strip())
             if i == NNvar:
-                word = input("Label word for signal data:")
+                word = ngram
                 graphemeBlock = len(word)
                 data = chunkIt(record,graphemeBlock)
                 count = 0
@@ -72,16 +108,16 @@ def record():
                         print(procX)
                     seg = seg[:procX]
                     print(seg, "=", count)
-                    testB.write(input("Label data for segment:") +"\n")#todo,automatically recognise difficulty/effort per syllable
-                    testB.flush()
-                    testA.write(','.join(seg) + "," + input("Stress detected? [1 or 0](WIP):")+ "\n")#todo,automatically recognise difficulty/effort per syllable
-                    testA.flush()
+                    testY.write(ngram[count] +"\n")#todo,automatically recognise difficulty/effort per syllable
+                    testY.flush()
+                    testX.write(','.join(seg) + "," + str(stress) + "\n")#todo,automatically recognise difficulty/effort per syllable
+                    testX.flush()
                     count+=1
                 i = 0
                 break
             i+=1
-    testA.close()
-    testB.close()
+    testX.close()
+    testY.close()
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:#post processing
         text = f.read().replace(",\n","\n").replace("\n,","\n")
     proc = open("uploadedSignalData.csv", "w", encoding="utf8")
@@ -122,7 +158,14 @@ def gen(text):#refactor into construction using gen() input rather than record()
 while(True):
     option = input("record, train or generate mental structure? [r/t/g]:")
     if option == "r":
-        record()
+        with open("xaa", encoding='ISO-8859-1') as f:
+            data = f.read().split(" ")
+        for i in range(sampleSize):
+            select = random.randint(0,1)
+            if select == 0:
+                record(returnWords(data,targetNgramSize),0)
+            if select == 1:
+                record(returnRWords(data,targetNgramSize),1)
     if option == "t":
         train()
     if option == "g":
