@@ -66,6 +66,15 @@ def returnRWords(data,length):
     time.sleep(1)
     return ngram
 def train():
+
+    total = []
+    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+        text = f.readlines()
+    testZ = open("uploadedSignalData.csv", "w", encoding="utf8")
+    for line in text:
+        if len(line) > 5:
+            testZ.write(line)#todo,automatically recognise difficulty/effort per syllable
+    testZ.close()
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
         text = f.readlines()
     varX = text[0].count(",")
