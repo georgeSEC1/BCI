@@ -149,15 +149,17 @@ def gen(inputData):#refactor into construction using gen() input rather than rec
     varX = textC[0].count(",")
     X = dataset[:,0:varX]
     predictions = (model.predict(X) > 0.5).astype(int)
+    with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
+        procData = f.read()
     for i in range(len(X)):
         if predictions[i] == 0:
-            db.append(False)
+            db.append(str(inputData[i])+str(0))
         if predictions[i] == 1:
-            db.append(True)
+            db.append(str(inputData[i])+str(1))
         print('%s => %d' % (X[i].tolist(), predictions[i]))
     return db
 while(True):
-    option = input("record, train or generate mental structure? [r/t/g]:")
+    option = input("record, train or generate? [r/t/g]:")
     if option == "r":
         with open("xaa", encoding='ISO-8859-1') as f:
             data = f.read().split(" ")
@@ -171,4 +173,7 @@ while(True):
         train()
     if option == "g":
         db = gen(input("Enter text:"))
-        print(db)
+        print("Generated rules: ", db)
+        GR = open("generatedRules.csv", "w", encoding="utf8")
+        GR.write(','.join(db))
+        GR.close()       
