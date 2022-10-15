@@ -22,13 +22,14 @@ import numpy as np
 from collections import deque
 import time
 import random
-NNvar = 55#work on continually adequate samples throughout short ngrams and long n-grams alike
-sampleSize = 10
+NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
+partition = 5
+sampleSize = 5
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
-targetNgramSize = 2
+targetNgramSize = 3
 def returnWords(data,length):
     ngram = ""
     pos = random.randint(1,len(data))
@@ -37,6 +38,7 @@ def returnWords(data,length):
         if pos+n < len(data)-2 and pos+n > 0:
             ngram += data[pos+n] + " "
         n+=1
+    print()
     print(ngram)
     print(3)
     time.sleep(1)
@@ -54,6 +56,7 @@ def returnRWords(data,length):
         if pos+n < len(data)-2 and pos+n > 0:
             ngram += data[pos+n] + " "
         n+=1
+    print()
     print(ngram)
     print(3)
     time.sleep(1)
@@ -97,7 +100,7 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
             print(var.strip())
             if i == NNvar:
                 word = ngram
-                graphemeBlock = len(word)-1
+                graphemeBlock = round(NNvar/partition)
                 data = chunkIt(record,graphemeBlock)
                 count = 0
                 procX = 0
@@ -108,7 +111,7 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
                         print(procX)
                     seg = seg[:procX]
                     print(seg, "=", count)
-                    testY.write(ngram[count] +"\n")#todo,automatically recognise difficulty/effort per syllable
+                    testY.write(ngram[count])#todo,automatically recognise difficulty/effort per syllable
                     testY.flush()
                     testX.write(','.join(seg) + "," + str(stress) + "\n")#todo,automatically recognise difficulty/effort per syllable
                     testX.flush()
@@ -125,27 +128,25 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
     proc.flush()
     proc.close()
     return record
-def gen(text):#refactor into construction using gen() input rather than record() input
+def gen(inputData):#refactor into construction using gen() input rather than record() input
     db = []
     model = keras.models.load_model('my_model')
     with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
-        text = f.readlines()
-    analysis = open("analysis.csv", "a", encoding="utf8")
-    for grapheme in text:
+        text = f.read()
+    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+        textB = f.readlines()
+    analysis = open("analysis.csv", "w", encoding="utf8")
+    for grapheme in inputData:
         proc = 0
-        try:
-            proc = text.index(grapheme)
-        except:
-            proc = 0
-        with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-            textB = f.readlines()
-        analysis.write(textB[proc])
-        analysis.flush()
+        proc = text.find(grapheme)
+        if proc > -1:
+            analysis.write(textB[proc])
+            analysis.flush()
     analysis.close()
     dataset = np.loadtxt('analysis.csv', delimiter=',')
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-        text = f.readlines()
-    varX = text[0].count(",")
+        textC = f.readlines()
+    varX = textC[0].count(",")
     X = dataset[:,0:varX]
     predictions = (model.predict(X) > 0.5).astype(int)
     for i in range(len(X)):
