@@ -122,9 +122,14 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
     testX.close()
     testY.close()
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:#post processing
-        text = f.read().replace(",\n","\n").replace("\n,","\n")
+        text = f.readlines()
+    total = ""
+    for line in text:
+        if line.count(",") == sampleSize-1:
+            total += line
+    total = total.replace(",\n","\n").replace("\n,","\n")
     proc = open("uploadedSignalData.csv", "w", encoding="utf8")
-    proc.write(text)
+    proc.write(total)
     proc.flush()
     proc.close()
     return record
@@ -139,7 +144,7 @@ def gen(inputData):#refactor into construction using gen() input rather than rec
     for grapheme in inputData:
         proc = 0
         proc = text.find(grapheme)
-        if proc > -1:
+        if proc > -1 and proc < len(textB):
             analysis.write(textB[proc])
             analysis.flush()
     analysis.close()
