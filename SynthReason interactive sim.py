@@ -29,7 +29,7 @@ import re
 iterations = 3
 targetNgramSize = 3
 token = " a "
-mentalRules = ""
+mentalRules = "t0,h1,i1,s0, 1,i1,s0, 1,a1, 1,t0,e0,s0,t0, 1,s0,e0,n1,t0,e0,n1,c0"
 if len(mentalRules) == 0:
    mentalRules = input("Please paste mental rules into the simulation:")
 def formatSentences(sync):
@@ -58,7 +58,7 @@ def branch(data,user,mentalRules):
                 string = convert(returnWords(data,data.index(word,ini),targetNgramSize))
                 for index in string:
                     ini = random.randint(1,len(data))
-                    if ruleA[1] == '0' and ruleB[1] == '1':
+                    if ruleA[1] == '0' or ruleB[1] == '1':
                         if index.find(ruleA[0]) < index.find(ruleB[0]) :
                             total += index + " "
             except:
