@@ -29,6 +29,9 @@ import re
 iterations = 3
 targetNgramSize = 3
 token = " a "
+mentalRules = ""
+if len(mentalRules) == 0:
+   mentalRules = input("Please paste mental rules into the simulation:")
 def formatSentences(sync):
     sentences = sync.split(".")
     i = 0

@@ -29,6 +29,9 @@ import re
 iterations = 3
 targetNgramSize = 3
 token = " a "
+mentalRules = ""
+if len(mentalRules) == 0:
+   mentalRules = input("Please paste mental rules into the simulation:")
 def formatSentences(sync):
     sentences = sync.split(".")
     i = 0
@@ -108,7 +111,6 @@ with open("fileList.conf", encoding='ISO-8859-1') as f:
         for file in files: 
             sync = user
             data = convert(gather(user,file.strip()))
-            mentalRules = "t0,h1,i1,s0, 1,i1,s0, 1,a1, 1,t0,e0,s0,t0, 1,s0,e0,n1,t0,e0,n1,c0"
             mentalRules = mentalRules.split(",")
             for index in range(iterations):
                sync = branch(data,sync,mentalRules) + sync
