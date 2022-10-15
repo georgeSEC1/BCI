@@ -103,6 +103,7 @@ with open("fileList.conf", encoding='ISO-8859-1') as f:
     	questions = f.readlines()
     filename = "Compendium#" + str(random.randint(0,10000000)) + ".txt"
     random.shuffle(questions)
+    mentalRules = mentalRules.split(",")
     for question in questions:
         print()
         user = re.sub('\W+',' ',question)
@@ -111,8 +112,6 @@ with open("fileList.conf", encoding='ISO-8859-1') as f:
         for file in files: 
             sync = user
             data = convert(gather(user,file.strip()))
-            mentalRules = "t0,h1,i1,s0, 1,i1,s0, 1,a1, 1,t0,e0,s0,t0, 1,s0,e0,n1,t0,e0,n1,c0"
-            mentalRules = mentalRules.split(",")
             for index in range(iterations):
                sync = branch(data,sync,mentalRules) + sync
             sync = formatSentences(sync.replace('\'', '').replace('\"', '').replace('//', '').replace('0', '').replace('1', '').replace('2', '').replace('3', '').replace('4', '').replace('5', '').replace('6', '').replace('7', '').replace('8', '').replace('9', '').replace('-', '').replace('(', '').replace(')', ''))
