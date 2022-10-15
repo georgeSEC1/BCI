@@ -29,7 +29,7 @@ import re
 iterations = 3
 targetNgramSize = 3
 token = " a "
-mentalRules = "t0,h1,i1,s0, 1,i1,s0, 1,a1, 1,t0,e0,s0,t0, 1,s0,e0,n1,t0,e0,n1,c0"
+mentalRules = ""
 if len(mentalRules) == 0:
    mentalRules = input("Please paste mental rules into the simulation:")
 def formatSentences(sync):
