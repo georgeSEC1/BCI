@@ -176,4 +176,5 @@ while(True):
         print("Generated rules: ", db)
         GR = open("generatedRules.csv", "w", encoding="utf8")
         GR.write(','.join(db))
-        GR.close()       
+        GR.close()
+        print("\"generatedRules.csv\" generated, Please paste contents into the simulation script.")        
