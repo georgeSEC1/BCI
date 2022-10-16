@@ -23,8 +23,8 @@ from collections import deque
 import time
 import random
 NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
-partition = 5
-sampleSize = 5
+partition = 10
+sampleSize = 25
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
@@ -91,8 +91,9 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
     ser = serial.Serial(com, baud, timeout = 0.1) 
     record = ""
     i = 0
-    testX = open("uploadedSignalData.csv", "a", encoding="utf8")
-    testY = open("uploadedGraphemeData.csv", "a", encoding="utf8")
+    outputA = ""
+    outputB = ""
+    graphemeBlock = round(NNvar/partition)
     while ser.isOpen():
         var = ser.readline().decode('utf-8')
         if len(var) > 0:
@@ -100,34 +101,33 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
             print(var.strip())
             if i == NNvar:
                 word = ngram
-                graphemeBlock = round(NNvar/partition)
                 data = chunkIt(record,graphemeBlock)
                 count = 0
                 procX = 0
                 for seg in data:
                     seg = list(filter(None, seg.split(",")))
-                    if procX == 0:
-                        procX = len(seg)-1
-                        print(procX)
-                    seg = seg[:procX]
                     print(seg, "=", count)
-                    testY.write(ngram[count])#todo,automatically recognise difficulty/effort per syllable
-                    testY.flush()
-                    testX.write(','.join(seg) + "," + str(stress) + "\n")#todo,automatically recognise difficulty/effort per syllable
-                    testX.flush()
+                    outputA += ','.join(seg) + "," + str(stress) + "\n"
+                    outputB += ngram[count]
                     count+=1
                 i = 0
                 break
             i+=1
+    testX = open("uploadedSignalData.csv", "a", encoding="utf8")
+    testX.write(outputA)
     testX.close()
+    testY = open("uploadedGraphemeData.csv", "a", encoding="utf8")
+    testY.write(outputB)
     testY.close()
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:#post processing
-        text = f.readlines()
+        text = f.read()
     total = ""
+    text = text.split("\n")
     for line in text:
-        if line.count(",") == sampleSize-1:
-            total += line
-    total = total.replace(",\n","\n").replace("\n,","\n")
+        line = line.split(",")
+        line = line[-partition:]
+        total += ','.join(line)+"\n"
+    total = total.replace("\n\n","\n")
     proc = open("uploadedSignalData.csv", "w", encoding="utf8")
     proc.write(total)
     proc.flush()
