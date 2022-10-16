@@ -24,7 +24,7 @@ import time
 import random
 NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
 partition = 10
-sampleSize = 25
+sampleSize = 20
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
@@ -177,9 +177,27 @@ while(True):
     if option == "t":
         train()
     if option == "g":
-        db = gen(input("Enter text:"))
+        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
+        test.close()
+        test = open("uploadedSignalData.csv", "w", encoding="utf8")
+        test.close()
+        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
+        test.close()
+        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
+        test.close()
+        dataIn = input("Enter text:")
+        print()
+        print(dataIn)
+        print(3)
+        time.sleep(1)
+        print(2)
+        time.sleep(1)
+        print(1)
+        time.sleep(1)
+        record(dataIn,0)
+        db = gen(dataIn)
         print("Generated rules: ", db)
         GR = open("generatedRules.csv", "w", encoding="utf8")
         GR.write(','.join(db))
         GR.close()
-        print("\"generatedRules.csv\" generated, Please paste contents into the simulation script.")   
+        print("\"generatedRules.csv\" generated, Please paste contents into the simulation script.")
