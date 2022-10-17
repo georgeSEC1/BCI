@@ -24,7 +24,7 @@ import time
 import random
 NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
 partition = 10
-sampleSize = 20
+sampleSize = 8
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
@@ -136,27 +136,13 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
 def gen(inputData):#refactor into construction using gen() input rather than record() input
     db = []
     model = keras.models.load_model('my_model')
-    with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
-        text = f.read()
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
-        textB = f.readlines()
-    analysis = open("analysis.csv", "w", encoding="utf8")
-    for grapheme in inputData:
-        proc = 0
-        proc = text.find(grapheme)
-        if proc > -1 and proc < len(textB):
-            analysis.write(textB[proc])
-            analysis.flush()
-    analysis.close()
-    dataset = np.loadtxt('analysis.csv', delimiter=',')
+    dataset = np.loadtxt('uploadedSignalData.csv', delimiter=',')
     with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
         textC = f.readlines()
     varX = textC[0].count(",")
     X = dataset[:,0:varX]
-    predictions = (model.predict(X) > 0.5).astype(int)
-    with open("uploadedGraphemeData.csv", encoding='ISO-8859-1') as f:
-        procData = f.read()
-    for i in range(len(X)):
+    predictions = (model.predict(X)).astype(int)
+    for i in range(len(predictions)):
         if predictions[i] == 0:
             db.append(str(inputData[i])+str(0))
         if predictions[i] == 1:
@@ -180,10 +166,6 @@ while(True):
         test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
         test.close()
         test = open("uploadedSignalData.csv", "w", encoding="utf8")
-        test.close()
-        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
-        test.close()
-        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
         test.close()
         dataIn = input("Enter text:")
         print()
