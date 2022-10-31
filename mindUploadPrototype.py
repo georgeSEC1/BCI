@@ -127,7 +127,7 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     proc.flush()
     proc.close()
     return dataFile
-def init(inputFile,model):#refactor into construction using gen() input rather than record() input
+def predict(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
     model = keras.models.load_model()
     dataset = np.loadtxt(inputFile, delimiter=',')
@@ -153,4 +153,4 @@ while(True):
         for i in range(sampleSize):
             train(recordData(returnWords(data,targetNgramSize,"sequential"),0, "SignalData.csv"),"relax_model")#mode,stress,outputFile,saved model
     if option == "i":
-        init(recordData("",0,"SignalInitData.csv"),"stress_model")
+        predict(recordData("",0,"SignalInitData.csv"),"stress_model")
