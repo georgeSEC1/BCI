@@ -24,12 +24,12 @@ import time
 import random
 NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
 partition = 10
-sampleSize = 8
+sampleSize = 2
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
-targetNgramSize = 3
+targetSize = 8
 def delay(ngram):
     print()
     print(ngram)
@@ -40,7 +40,7 @@ def delay(ngram):
     print(1)
     time.sleep(1)
     return
-def returnWords(data,length, mode):
+def returnNgrams(data,length, mode):
     if mode == "sequential":
         ngram = ""
         pos = random.randint(1,len(data))
@@ -129,7 +129,7 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     return dataFile
 def predict(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
-    model = keras.models.load_model()
+    model = keras.models.load_model(model)
     dataset = np.loadtxt(inputFile, delimiter=',')
     with open(inputFile, encoding='ISO-8859-1') as f:
         textC = f.readlines()
@@ -138,9 +138,9 @@ def predict(inputFile,model):#refactor into construction using gen() input rathe
     predictions = (model.predict(X)).astype(int)
     for i in range(len(predictions)):
         if predictions[i] == 0:
-            db.append(str(inputData[i])+str(0))
+            db.append(str(0))
         if predictions[i] == 1:
-            db.append(str(inputData[i])+str(1))
+            db.append(str(1))
         print('%s => %d' % (X[i].tolist(), predictions[i]))
     return db
 while(True):
@@ -149,8 +149,8 @@ while(True):
     option = input("train or initialise? [t/i]:")
     if option == "t":
         for i in range(sampleSize):
-            train(recordData(returnWords(data,targetNgramSize,"random"),1, "SignalData.csv"),"stress_model")#mode,stress,outputFile,saved model
+            train(recordData(returnNgrams(data,targetSize,"random"),1, "SignalData.csv"),"stress_model")#mode,stress,outputFile,saved model
         for i in range(sampleSize):
-            train(recordData(returnWords(data,targetNgramSize,"sequential"),0, "SignalData.csv"),"relax_model")#mode,stress,outputFile,saved model
+            train(recordData(returnNgrams(data,targetSize,"sequential"),0, "SignalData.csv"),"relax_model")#mode,stress,outputFile,saved model
     if option == "i":
-        predict(recordData("",0,"SignalInitData.csv"),"stress_model")
+        predict(recordData(returnNgrams(data,targetSize,"sequential"),0,"SignalInitData.csv"),"stress_model")
