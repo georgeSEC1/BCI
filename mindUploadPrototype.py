@@ -30,14 +30,7 @@ com = "COM3"
 baud = 9600 
 option = ""
 targetNgramSize = 3
-def returnWords(data,length):
-    ngram = ""
-    pos = random.randint(1,len(data))
-    n = 0
-    while(n < length and pos+length < len(data)-1):
-        if pos+n < len(data)-2 and pos+n > 0:
-            ngram += data[pos+n] + " "
-        n+=1
+def delay(ngram):
     print()
     print(ngram)
     print(3)
@@ -46,30 +39,34 @@ def returnWords(data,length):
     time.sleep(1)
     print(1)
     time.sleep(1)
-    return ngram
-def returnRWords(data,length):
-    ngram = ""
-    pos = random.randint(1,len(data))
-    n = 0
-    while(n < length and pos+length < len(data)-1):
+    return
+def returnWords(data,length, mode):
+    if mode == "sequential":
+        ngram = ""
         pos = random.randint(1,len(data))
-        if pos+n < len(data)-2 and pos+n > 0:
-            ngram += data[pos+n] + " "
-        n+=1
-    print()
-    print(ngram)
-    print(3)
-    time.sleep(1)
-    print(2)
-    time.sleep(1)
-    print(1)
-    time.sleep(1)
-    return ngram
-def train():
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+        n = 0
+        while(n < length and pos+length < len(data)-1):
+            if pos+n < len(data)-2 and pos+n > 0:
+                ngram += data[pos+n] + " "
+            n+=1
+        delay(ngram)
+        return ngram
+    if mode == "random":
+        ngram = ""
+        pos = random.randint(1,len(data))
+        n = 0
+        while(n < length and pos+length < len(data)-1):
+            pos = random.randint(1,len(data))
+            if pos+n < len(data)-2 and pos+n > 0:
+                ngram += data[pos+n] + " "
+            n+=1
+        delay(ngram)
+        return ngram
+def train(dataFile,modelName):
+    with open(dataFile, encoding='ISO-8859-1') as f:
         text = f.readlines()
     varX = text[0].count(",")
-    dataset = np.loadtxt("uploadedSignalData.csv", delimiter=',',usecols = range(varX+1))
+    dataset = np.loadtxt(dataFile, delimiter=',',usecols = range(varX+1))
     X = dataset[:,0:varX]
     y = dataset[:,varX]
     model = Sequential()
@@ -78,7 +75,7 @@ def train():
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X, y, epochs=150, batch_size=10, verbose=1)
-    model.save('my_model')
+    model.save(modelName)
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
     out = []
@@ -87,7 +84,7 @@ def chunkIt(seq, num):
         out.append(seq[int(last):int(last + avg)])
         last += avg
     return out
-def record(ngram,stress):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
+def recordData(ngram,stress,dataFile):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
     ser = serial.Serial(com, baud, timeout = 0.1) 
     record = ""
     i = 0
@@ -113,13 +110,10 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
                 i = 0
                 break
             i+=1
-    testX = open("uploadedSignalData.csv", "a", encoding="utf8")
+    testX = open(dataFile, "a", encoding="utf8")
     testX.write(outputA)
     testX.close()
-    testY = open("uploadedGraphemeData.csv", "a", encoding="utf8")
-    testY.write(outputB)
-    testY.close()
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:#post processing
+    with open(dataFile, encoding='ISO-8859-1') as f:#post processing
         text = f.read()
     total = ""
     text = text.split("\n")
@@ -128,16 +122,16 @@ def record(ngram,stress):#Adversarial training between easy and difficult n-gram
         line = line[-partition:]
         total += ','.join(line)+"\n"
     total = total.replace("\n\n","\n")
-    proc = open("uploadedSignalData.csv", "w", encoding="utf8")
+    proc = open(dataFile, "w", encoding="utf8")
     proc.write(total)
     proc.flush()
     proc.close()
-    return record
-def gen(inputData):#refactor into construction using gen() input rather than record() input
+    return dataFile
+def init(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
-    model = keras.models.load_model('my_model')
-    dataset = np.loadtxt('uploadedSignalData.csv', delimiter=',')
-    with open("uploadedSignalData.csv", encoding='ISO-8859-1') as f:
+    model = keras.models.load_model()
+    dataset = np.loadtxt(inputFile, delimiter=',')
+    with open(inputFile, encoding='ISO-8859-1') as f:
         textC = f.readlines()
     varX = textC[0].count(",")
     X = dataset[:,0:varX]
@@ -150,36 +144,13 @@ def gen(inputData):#refactor into construction using gen() input rather than rec
         print('%s => %d' % (X[i].tolist(), predictions[i]))
     return db
 while(True):
-    option = input("record, train or generate? [r/t/g]:")
-    if option == "r":
-        with open("xaa", encoding='ISO-8859-1') as f:
-            data = f.read().split(" ")
-        for i in range(sampleSize):
-            select = random.randint(0,1)
-            if select == 0:
-                record(returnWords(data,targetNgramSize),0)
-            if select == 1:
-                record(returnRWords(data,targetNgramSize),1)
+    with open("xaa", encoding='ISO-8859-1') as f:
+        data = f.read().split(" ")
+    option = input("train or initialise? [t/i]:")
     if option == "t":
-        train()
-    if option == "g":
-        test = open("uploadedGraphemeData.csv", "w", encoding="utf8")
-        test.close()
-        test = open("uploadedSignalData.csv", "w", encoding="utf8")
-        test.close()
-        dataIn = input("Enter text:")
-        print()
-        print(dataIn)
-        print(3)
-        time.sleep(1)
-        print(2)
-        time.sleep(1)
-        print(1)
-        time.sleep(1)
-        record(dataIn,0)
-        db = gen(dataIn)
-        print("Generated rules: ", db)
-        GR = open("generatedRules.csv", "w", encoding="utf8")
-        GR.write(','.join(db))
-        GR.close()
-        print("\"generatedRules.csv\" generated, Please paste contents into the simulation script.")
+        for i in range(sampleSize):
+            train(recordData(returnWords(data,targetNgramSize,"random"),1, "SignalData.csv"),"stress_model")#mode,stress,outputFile,saved model
+        for i in range(sampleSize):
+            train(recordData(returnWords(data,targetNgramSize,"sequential"),0, "SignalData.csv"),"relax_model")#mode,stress,outputFile,saved model
+    if option == "i":
+        init(recordData("",0,"SignalInitData.csv"),"stress_model")
