@@ -1,4 +1,4 @@
-#Mind uploading technology 
+#BCI - brain computer interface technology. 
 #Copyright (C) 2022 George Wagenkencht
 #
 #This program is free software: you can redistribute it and/or modify
