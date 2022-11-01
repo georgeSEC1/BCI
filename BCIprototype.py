@@ -24,12 +24,15 @@ import time
 import random
 NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
 partition = 10
-sampleSize = 2
+sampleSize = 6
 graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
-targetSize = 8
+dictumSize = 5
+def resetDataFile(dataFile):
+    f = open(dataFile, "w", encoding="utf8")
+    f.close()
 def delay(ngram):
     print()
     print(ngram)
@@ -85,47 +88,26 @@ def chunkIt(seq, num):
         last += avg
     return out
 def recordData(ngram,stress,dataFile):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
+    print("recording...")
     ser = serial.Serial(com, baud, timeout = 0.1) 
     record = ""
-    i = 0
-    outputA = ""
-    outputB = ""
-    graphemeBlock = round(NNvar/partition)
+    i = 1
     while ser.isOpen():
         var = ser.readline().decode('utf-8')
         if len(var) > 0:
             record += var.strip() + ","
-            print(var.strip())
-            if i == NNvar:
-                word = ngram
-                data = chunkIt(record,graphemeBlock)
-                count = 0
-                procX = 0
-                for seg in data:
-                    seg = list(filter(None, seg.split(",")))
-                    print(seg, "=", count)
-                    outputA += ','.join(seg) + "," + str(stress) + "\n"
-                    outputB += ngram[count]
-                    count+=1
-                i = 0
+            if i == partition*sampleSize:
                 break
             i+=1
-    testX = open(dataFile, "a", encoding="utf8")
-    testX.write(outputA)
-    testX.close()
-    with open(dataFile, encoding='ISO-8859-1') as f:#post processing
-        text = f.read()
+    record = np.array(record[:-1].split(","))
+    record = record.reshape(partition, sampleSize)
+    record = record.tolist()
     total = ""
-    text = text.split("\n")
-    for line in text:
-        line = line.split(",")
-        line = line[-partition:]
-        total += ','.join(line)+"\n"
-    total = total.replace("\n\n","\n")
-    proc = open(dataFile, "w", encoding="utf8")
-    proc.write(total)
-    proc.flush()
-    proc.close()
+    for line in record:
+        total += ','.join(line) + ",0\n"  
+    testX = open(dataFile, "a", encoding="utf8")
+    testX.write(total)
+    testX.close()
     return dataFile
 def predict(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
@@ -148,9 +130,13 @@ while(True):
         data = f.read().split(" ")
     option = input("train or initialise? [t/i]:")
     if option == "t":
+        resetDataFile("SignalData.csv")
         for i in range(sampleSize):
-            train(recordData(returnNgrams(data,targetSize,"random"),1, "SignalData.csv"),"stress_model")#mode,stress,outputFile,saved model
+            recordData(returnNgrams(data,dictumSize,"random"),1, "SignalData.csv")#mode,stress,outputFile,saved model
+        train("SignalData.csv","stress_model")
+        resetDataFile("SignalData.csv")
         for i in range(sampleSize):
-            train(recordData(returnNgrams(data,targetSize,"sequential"),0, "SignalData.csv"),"relax_model")#mode,stress,outputFile,saved model
+            recordData(returnNgrams(data,dictumSize,"sequential"),1, "SignalData.csv")#mode,stress,outputFile,saved model
+        train("SignalData.csv","relax_model")
     if option == "i":
-        predict(recordData(returnNgrams(data,targetSize,"sequential"),0,"SignalInitData.csv"),"stress_model")
+        predict(recordData(returnNgrams(data,dictumSize,"sequential"),0,"SignalPredictData.csv"),"stress_model")
