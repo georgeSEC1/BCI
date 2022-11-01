@@ -19,13 +19,10 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 import tensorflow as tf
 import numpy as np
-from collections import deque
 import time
 import random
-NNvar = 50#work on continually adequate samples throughout short ngrams and long n-grams alike
 partition = 10
 sampleSize = 6
-graphemeBlock = 0
 com = "COM3"
 baud = 9600 
 option = ""
@@ -79,14 +76,6 @@ def train(dataFile,modelName):
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
     model.fit(X, y, epochs=150, batch_size=10, verbose=1)
     model.save(modelName)
-def chunkIt(seq, num):
-    avg = len(seq) / float(num)
-    out = []
-    last = 0.0
-    while last < len(seq):
-        out.append(seq[int(last):int(last + avg)])
-        last += avg
-    return out
 def recordData(ngram,stress,dataFile):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
     print("recording...")
     ser = serial.Serial(com, baud, timeout = 0.1) 
@@ -104,7 +93,7 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     record = record.tolist()
     total = ""
     for line in record:
-        total += ','.join(line) + ",0\n"  
+        total += ','.join(line) + ","+ str(stress)+"\n"  
     testX = open(dataFile, "a", encoding="utf8")
     testX.write(total)
     testX.close()
@@ -128,15 +117,13 @@ def predict(inputFile,model):#refactor into construction using gen() input rathe
 while(True):
     with open("xaa", encoding='ISO-8859-1') as f:
         data = f.read().split(" ")
-    option = input("train or initialise? [t/i]:")
+    option = input("train or predict? [t/p]:")
     if option == "t":
         resetDataFile("SignalData.csv")
         for i in range(sampleSize):
-            recordData(returnNgrams(data,dictumSize,"random"),1, "SignalData.csv")#mode,stress,outputFile,saved model
-        train("SignalData.csv","stress_model")
-        resetDataFile("SignalData.csv")
+            recordData(returnNgrams(data,dictumSize,"random"),1, "SignalData.csv")#mode,stress,outputFile
         for i in range(sampleSize):
-            recordData(returnNgrams(data,dictumSize,"sequential"),1, "SignalData.csv")#mode,stress,outputFile,saved model
-        train("SignalData.csv","relax_model")
-    if option == "i":
+            recordData(returnNgrams(data,dictumSize,"sequential"),0, "SignalData.csv")#mode,stress,outputFile
+        train("SignalData.csv","stress_model")
+    if option == "p":
         predict(recordData(returnNgrams(data,dictumSize,"sequential"),0,"SignalPredictData.csv"),"stress_model")
