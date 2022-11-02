@@ -126,4 +126,5 @@ while(True):
             recordData(returnNgrams(data,dictumSize,"sequential"),0, "SignalData.csv")#mode,stress,outputFile
         train("SignalData.csv","stress_model")
     if option == "p":
+        resetDataFile("SignalPredictData.csv")
         predict(recordData(returnNgrams(data,dictumSize,"sequential"),0,"SignalPredictData.csv"),"stress_model")
