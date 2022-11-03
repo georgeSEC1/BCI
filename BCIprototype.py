@@ -22,7 +22,7 @@ import numpy as np
 import time
 import random
 partition = 10
-sampleSize = 6
+sampleSize = 5
 com = "COM3"
 baud = 9600 
 option = ""
@@ -97,9 +97,12 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     testX = open(dataFile, "a", encoding="utf8")
     testX.write(total)
     testX.close()
-    testX = open("StressDictum.txt", "a", encoding="utf8")
-    testX.write(ngram + " [signal:" + str(stress) + " baseline]\n")
-    testX.close()
+    try:
+        testX = open(ngram+".dat", "a", encoding="utf8")
+        testX.write(total)
+        testX.close()
+    except:
+        False
     return dataFile
 def predict(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
