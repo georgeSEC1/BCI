@@ -97,6 +97,9 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     testX = open(dataFile, "a", encoding="utf8")
     testX.write(total)
     testX.close()
+    testX = open("StressDictum.txt", "a", encoding="utf8")
+    testX.write(ngram + " [signal:" + str(stress) + " baseline]\n")
+    testX.close()
     return dataFile
 def predict(inputFile,model):#refactor into construction using gen() input rather than record() input
     db = []
@@ -120,11 +123,12 @@ while(True):
     option = input("train or predict? [t/p]:")
     if option == "t":
         resetDataFile("SignalData.csv")
+        resetDataFile("StressDictum.txt")
         for i in range(sampleSize):
             recordData(returnNgrams(data,dictumSize,"random"),1, "SignalData.csv")#mode,stress,outputFile
         for i in range(sampleSize):
             recordData(returnNgrams(data,dictumSize,"sequential"),0, "SignalData.csv")#mode,stress,outputFile
         train("SignalData.csv","stress_model")
     if option == "p":
-        resetDataFile("SignalPredictData.csv")
-        predict(recordData(returnNgrams(data,dictumSize,"sequential"),0,"SignalPredictData.csv"),"stress_model")
+        ngram = returnNgrams(data,dictumSize,"sequential")
+        predict(recordData(ngram,0,ngram + ".txt"),"stress_model")
