@@ -98,7 +98,7 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     testX.write(total)
     testX.close()
     try:
-        testX = open(ngram+".dat", "a", encoding="utf8")
+        testX = open(ngram+".dat", "w", encoding="utf8")
         testX.write(total)
         testX.close()
     except:
@@ -134,4 +134,4 @@ while(True):
         train("SignalData.csv","stress_model")
     if option == "p":
         ngram = returnNgrams(data,dictumSize,"sequential")
-        predict(recordData(ngram,0,ngram + ".txt"),"stress_model")
+        predict(recordData(ngram,0,ngram + "X.txt"),"stress_model")
