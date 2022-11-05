@@ -139,4 +139,4 @@ while(True):
             ngram = returnNgrams(data,dictumSize,"sequential")
         if option == "i":
             ngram = input("enter n-gram: ")
-        predict(recordData(ngram,0,"X" + ngram + ".dat"),"stress_model")
+        predict(recordData(ngram,0,"X " + ngram + ".dat"),"stress_model")
