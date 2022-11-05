@@ -98,7 +98,7 @@ def recordData(ngram,stress,dataFile):#Adversarial training between easy and dif
     testX.write(total)
     testX.close()
     try:
-        testX = open(ngram+".dat", "w", encoding="utf8")
+        testX = open(ngram +" "+ str(stress)+".dat", "w", encoding="utf8")
         testX.write(total)
         testX.close()
     except:
