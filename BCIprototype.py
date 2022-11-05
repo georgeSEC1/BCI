@@ -133,5 +133,10 @@ while(True):
             recordData(returnNgrams(data,dictumSize,"sequential"),0, "SignalData.csv")#mode,stress,outputFile
         train("SignalData.csv","stress_model")
     if option == "p":
-        ngram = returnNgrams(data,dictumSize,"sequential")
+        option = input("file sample or input sample? [f/i]:")
+        ngram = ""
+        if option == "f":
+            ngram = returnNgrams(data,dictumSize,"sequential")
+        if option == "i":
+            ngram = input("enter n-gram: ")
         predict(recordData(ngram,0,"X" + ngram + ".dat"),"stress_model")
