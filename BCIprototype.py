@@ -121,7 +121,7 @@ def predict(inputFile,model):#refactor into construction using gen() input rathe
         print('%s => %d' % (X[i].tolist(), predictions[i]))
     return db
 while(True):
-    with open("xaa", encoding='ISO-8859-1') as f:
+    with open("db", encoding='ISO-8859-1') as f:
         data = f.read().split(" ")
     option = input("train or predict? [t/p]:")
     if option == "t":
@@ -133,10 +133,15 @@ while(True):
             recordData(returnNgrams(data,dictumSize,"sequential"),0, "SignalData.csv")#mode,stress,outputFile
         train("SignalData.csv","stress_model")
     if option == "p":
-        option = input("file sample or input sample? [f/i]:")
-        ngram = ""
-        if option == "f":
-            ngram = returnNgrams(data,dictumSize,"sequential")
-        if option == "i":
-            ngram = input("enter n-gram: ")
-        predict(recordData(ngram,0,"X " + ngram + ".dat"),"stress_model")
+        print("press CTRL-C to exit menu.")
+        while(True):
+            option = input("db sample, input sample or suggest ngram? [d/i/s]:")
+            ngram = ""
+            if option == "d":
+                ngram = returnNgrams(data,dictumSize,"sequential")
+                predict(recordData(ngram,0,"X " + ngram + ".dat"),"stress_model")
+            if option == "i":
+                ngram = input("enter n-gram: ")
+                predict(recordData(ngram,0,"X " + ngram + ".dat"),"stress_model")
+            if option == "s":
+                print(returnNgrams(data,dictumSize,"sequential"))
