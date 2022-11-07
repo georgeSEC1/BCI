@@ -17,6 +17,7 @@ import serial
 import keras
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
 import numpy as np
 import time
@@ -69,12 +70,15 @@ def train(dataFile,modelName):
     dataset = np.loadtxt(dataFile, delimiter=',',usecols = range(varX+1))
     X = dataset[:,0:varX]
     y = dataset[:,varX]
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1)
     model = Sequential()
-    model.add(Dense(120, input_shape=(X.shape[-1],), activation='relu'))
+    model.add(Dense(120, input_shape=(X_train.shape[-1],), activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    model.fit(X, y, epochs=150, batch_size=10, verbose=1)
+    model.fit(X_train, y_train, epochs=150, batch_size=10, verbose=0)
+    _, accuracy = model.evaluate(X_test, y_test)
+    print('Accuracy: %.2f' % (accuracy * 100))
     model.save(modelName)
 def recordData(ngram,stress,dataFile):#Adversarial training between easy and difficult n-grams, full 2d grapheme differentiation...
     print("recording...")
